@@ -1,0 +1,51 @@
+name: ingest-macro
+
+on:
+  schedule:
+    - cron: "0 9 5 * *" # dia 5 de cada mes
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ingest-macro
+  cancel-in-progress: false
+
+jobs:
+  carga:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write # commit do manifesto (tambem mantem os agendamentos ativos)
+    env:
+      DBT_TARGET: prod
+      AMBIENTE: prod
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: astral-sh/setup-uv@b5f58b2abc5763ade55e4e9d0fe52cd1ff7979ca # v5.2.1
+        with:
+          enable-cache: true
+      - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        with:
+          path: transform/dbt_packages
+          key: dbt-${{ hashFiles('transform/packages.yml') }}
+      - run: uv venv --python 3.12 .venv
+      - run: uv pip install --python .venv/bin/python -e "ingestion[r2]" dbt-duckdb
+      - run: cd transform && ../.venv/bin/dbt deps --profiles-dir .
+      - run: make ingest-macro
+      - run: make dbt-macro
+      - run: cd transform && ../.venv/bin/dbt source freshness --profiles-dir . --select source:bcb_sgs
+      - run: make exportar
+      - run: make publicar
+      - name: Commit do manifesto
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add manifest/bronze.json
+          git diff --cached --quiet || git commit -m "chore(dados): atualiza manifesto da carga mensal"
+          git push

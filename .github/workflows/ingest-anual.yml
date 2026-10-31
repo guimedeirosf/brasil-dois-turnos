@@ -1,0 +1,38 @@
+name: ingest-anual
+
+# RAIS, CAGED, CNPJ e transferencias entram na fase 4 (fontes ainda sem implementacao).
+on:
+  schedule:
+    - cron: "0 9 15 3 *" # 15 de marco
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ingest-anual
+  cancel-in-progress: false
+
+jobs:
+  carga:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      DBT_TARGET: prod
+      AMBIENTE: prod
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: astral-sh/setup-uv@b5f58b2abc5763ade55e4e9d0fe52cd1ff7979ca # v5.2.1
+        with:
+          enable-cache: true
+      - run: uv venv --python 3.12 .venv
+      - run: uv pip install --python .venv/bin/python -e "ingestion[r2]" dbt-duckdb
+      - run: cd transform && ../.venv/bin/dbt deps --profiles-dir .
+      - run: make ingest-anual
+      - run: cd transform && ../.venv/bin/dbt build --profiles-dir . --select +dim_municipio
+      - run: make exportar
+      - run: make publicar
