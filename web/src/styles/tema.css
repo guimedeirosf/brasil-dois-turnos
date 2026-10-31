@@ -1,0 +1,62 @@
+/* Paleta propria. Cores dos candidatos neutras (sem cor partidaria). */
+:root {
+  --cand-a: #0f8b8d;
+  --cand-b: #7b5ea7;
+  --esq: #c97b63;
+  --centro: #9a9a8e;
+  --dir: #5b7fa3;
+  --branco: #d9d4c7;
+  --nulo: #a8a29e;
+  --abst: #6b6b6b;
+  --estimativa: #b45309;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --serif: "Source Serif 4", Georgia, serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cand-a: #3fb8b9;
+    --cand-b: #a68bd1;
+    --branco: #8f8a7f;
+    --abst: #9ca3af;
+    --estimativa: #f59e0b;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+h1,
+h2 {
+  font-family: var(--serif);
+  letter-spacing: -0.01em;
+}
+
+.selo-estimativa {
+  display: inline-block;
+  border: 1px solid var(--estimativa);
+  color: var(--estimativa);
+  border-radius: 4px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.numero-chave {
+  font-family: var(--serif);
+  font-size: 2.2rem;
+  line-height: 1.1;
+}
+
+.legenda {
+  color: var(--theme-foreground-muted);
+  font-size: 0.85rem;
+}
+
+.chat-resposta {
+  border-left: 3px solid var(--theme-foreground-focus);
+  padding-left: 1rem;
+}

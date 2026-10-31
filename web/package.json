@@ -1,0 +1,26 @@
+{
+  "name": "brasil-dois-turnos-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "observable preview",
+    "build": "observable build",
+    "clean": "rimraf src/.observablehq/cache dist",
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "@observablehq/framework": "^1.13.2",
+    "d3-sankey": "^0.12.3",
+    "topojson-client": "^3.1.0",
+    "topojson-simplify": "^3.0.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "http-server": "^14.1.1",
+    "rimraf": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
