@@ -1,0 +1,28 @@
+{
+  "name": "brasil-dois-turnos-chat",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "lint": "eslint src test && prettier --check src test",
+    "typecheck": "tsc --noEmit",
+    "build:semantic": "node scripts/empacotar-semantica.mjs"
+  },
+  "dependencies": {
+    "node-sql-parser": "^5.3.10",
+    "yaml": "^2.6.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250124.0",
+    "@eslint/js": "^9.18.0",
+    "eslint": "^9.18.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.21.0",
+    "vitest": "^3.0.4",
+    "wrangler": "^3.105.0"
+  }
+}

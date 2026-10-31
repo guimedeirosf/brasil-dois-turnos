@@ -1,0 +1,28 @@
+name = "brasil-dois-turnos-chat"
+main = "src/index.ts"
+compatibility_date = "2025-01-20"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Dominio do site (CORS). Ajuste para o dominio final.
+ORIGEM_PERMITIDA = "https://SEU_USUARIO.github.io"
+LIMITE_HORA_IP = "10"
+LIMITE_DIA_IP = "30"
+TETO_DIARIO_LLM = "1200"
+CACHE_DIAS = "7"
+
+# Contadores de limite e cache das respostas (camada gratuita do Workers KV).
+# Crie com: wrangler kv namespace create LIMITES  /  wrangler kv namespace create CACHE
+[[kv_namespaces]]
+binding = "LIMITES"
+id = "PREENCHER"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "PREENCHER"
+
+# Workers AI: terceiro provedor de reserva
+[ai]
+binding = "AI"
+
+# Segredos (wrangler secret put ...): GEMINI_API_KEY, GROQ_API_KEY, TURNSTILE_SECRET
