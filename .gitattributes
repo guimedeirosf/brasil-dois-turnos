@@ -1,0 +1,4 @@
+# LF no repositorio e na copia de trabalho, inclusive no Windows
+* text=auto eol=lf
+*.parquet binary
+*.zip binary

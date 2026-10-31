@@ -1,0 +1,35 @@
+# Dados locais (Bronze e Gold sao reprodutiveis a partir das fontes)
+data/
+*.duckdb
+*.duckdb.wal
+
+# Python
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage/
+
+# dbt
+transform/target/
+transform/dbt_packages/
+transform/logs/
+transform/.user.yml
+logs/
+
+# Node, Observable e Worker
+node_modules/
+web/dist/
+web/src/.observablehq/cache/
+web/test-results/
+web/playwright-report/
+.wrangler/
+chat-worker/src/semantica/semantica.json
+
+# Segredos e configuracao local
+.env
+.env.*
+.dev.vars
