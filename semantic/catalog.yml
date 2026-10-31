@@ -1,0 +1,373 @@
+versao: 1
+dialeto: duckdb
+observacoes:
+- Os nomes CAND_A e CAND_B sao os dois candidatos que foram ao 2o turno; CAND_A e o mais votado no 1o
+  turno. Os nomes reais estao em dim_candidato (nome_urna, categoria_2t) e em srv_resumo_eleicao (nome_cand_a,
+  nome_cand_b).
+- Toda linha de fct_transicao_estimada e uma ESTIMATIVA por inferencia ecologica, com intervalo de credibilidade
+  de 95% (ic_inferior, ic_superior). Nunca descreve comportamento individual.
+- Percentuais estao em fracao (0 a 1). Multiplique por 100 para exibir.
+sinonimos:
+  abstencao: categoria ABST
+  branco: categoria BRANCO
+  nulo: categoria NULO
+  esquerda: categoria ESQ (demais candidatos com nota ideologica menor que 4)
+  centro: categoria CENTRO (nota de 4 a 6)
+  direita: categoria DIR (nota maior que 6)
+  Norte: uf in ('AC','AM','AP','PA','RO','RR','TO')
+  Nordeste: uf in ('AL','BA','CE','MA','PB','PE','PI','RN','SE')
+  Centro-Oeste: uf in ('DF','GO','MS','MT')
+  Sudeste: uf in ('ES','MG','RJ','SP')
+  Sul: uf in ('PR','RS','SC')
+  exterior: uf = 'ZZ'
+  Lula: resolver por dim_candidato.nome_urna (ex. nome_urna = 'LULA')
+  Flavio: resolver por dim_candidato.nome_urna (ex. nome_urna = 'FLAVIO BOLSONARO')
+  virada: srv_municipio_turnos.virada (vencedor do 2o turno diferente do lider do 1o entre os finalistas)
+  swing: srv_municipio_turnos.swing_cand_a (variacao em p.p. de votos validos de CAND_A entre turnos)
+tabelas:
+  srv_resumo_eleicao:
+    descricao: Numeros-chave por eleicao, turno e abrangencia (abrangencia = 'BR' ou sigla da UF).
+    granularidade: eleicao x turno x abrangencia
+    colunas:
+      abrangencia:
+        descricao: '''BR'' para o pais ou a sigla da UF (''ZZ'' = exterior)'
+        tipo: VARCHAR
+      turno:
+        descricao: 1 ou 2
+        tipo: INTEGER
+      sk_eleicao:
+        tipo: VARCHAR
+      aptos:
+        tipo: DOUBLE
+      comparecimento:
+        tipo: DOUBLE
+      abstencao:
+        tipo: DOUBLE
+      brancos:
+        tipo: DOUBLE
+      nulos:
+        tipo: DOUBLE
+      votos_cand_a:
+        tipo: DOUBLE
+      votos_cand_b:
+        tipo: DOUBLE
+      votos_esq:
+        tipo: DOUBLE
+      votos_centro:
+        tipo: DOUBLE
+      votos_dir:
+        tipo: DOUBLE
+      nome_cand_a:
+        tipo: VARCHAR
+      nome_cand_b:
+        tipo: VARCHAR
+      partido_cand_a:
+        tipo: VARCHAR
+      partido_cand_b:
+        tipo: VARCHAR
+      votos_validos:
+        tipo: DOUBLE
+      pct_abstencao:
+        tipo: DOUBLE
+      pct_validos_cand_a:
+        tipo: DOUBLE
+      pct_validos_cand_b:
+        tipo: DOUBLE
+      ano:
+        tipo: BIGINT
+      cargo:
+        tipo: VARCHAR
+  srv_municipio_turnos:
+    descricao: Um municipio por eleicao, com vencedor por turno, virada, swing e abstencao.
+    granularidade: eleicao x municipio
+    colunas:
+      vencedor_1t:
+        descricao: Finalista com mais votos no municipio no 1o turno (CAND_A ou CAND_B)
+        valores:
+        - CAND_A
+        - CAND_B
+        tipo: VARCHAR
+      vencedor_2t:
+        valores:
+        - CAND_A
+        - CAND_B
+        tipo: VARCHAR
+      sk_eleicao:
+        tipo: VARCHAR
+      uf:
+        tipo: VARCHAR
+      cod_municipio_tse:
+        tipo: INTEGER
+      cod_municipio_ibge:
+        tipo: INTEGER
+      aptos_1t:
+        tipo: DOUBLE
+      pct_abstencao_1t:
+        tipo: DOUBLE
+      pct_abstencao_2t:
+        tipo: DOUBLE
+      pct_validos_cand_a_1t:
+        tipo: DOUBLE
+      pct_validos_cand_b_1t:
+        tipo: DOUBLE
+      pct_validos_cand_a_2t:
+        tipo: DOUBLE
+      pct_validos_cand_b_2t:
+        tipo: DOUBLE
+      votos_cand_a_1t:
+        tipo: DOUBLE
+      votos_cand_b_1t:
+        tipo: DOUBLE
+      votos_cand_a_2t:
+        tipo: DOUBLE
+      votos_cand_b_2t:
+        tipo: DOUBLE
+      nome_municipio:
+        tipo: VARCHAR
+      regiao:
+        tipo: VARCHAR
+      virada:
+        tipo: BOOLEAN
+      swing_cand_a:
+        tipo: DOUBLE
+      variacao_abstencao:
+        tipo: DOUBLE
+      ano:
+        tipo: BIGINT
+      cargo:
+        tipo: VARCHAR
+  fct_votacao_municipio:
+    descricao: Votos por municipio, turno e votavel (candidato, branco ou nulo).
+    granularidade: eleicao x turno x municipio x votavel
+    colunas:
+      categoria:
+        valores:
+        - CAND_A
+        - CAND_B
+        - ESQ
+        - CENTRO
+        - DIR
+        - BRANCO
+        - NULO
+        tipo: VARCHAR
+      sk_eleicao:
+        tipo: VARCHAR
+      turno:
+        tipo: INTEGER
+      uf:
+        tipo: VARCHAR
+      cod_municipio_tse:
+        tipo: INTEGER
+      cod_municipio_ibge:
+        tipo: INTEGER
+      nr_votavel:
+        tipo: INTEGER
+      sk_candidato:
+        tipo: VARCHAR
+      votos:
+        tipo: DOUBLE
+      pct_validos:
+        tipo: DOUBLE
+      ano:
+        tipo: BIGINT
+      cargo:
+        tipo: VARCHAR
+  fct_transicao_estimada:
+    descricao: ESTIMATIVA por inferencia ecologica do fluxo do eleitorado entre o 1o e o 2o turno. pct_estimado
+      e a fracao dos eleitores da origem que foram para o destino.
+    granularidade: eleicao x abrangencia x origem x destino
+    colunas:
+      ano:
+        tipo: BIGINT
+      cargo:
+        tipo: VARCHAR
+      abrangencia:
+        tipo: VARCHAR
+        descricao: '''BR'' ou sigla da UF'
+      origem:
+        tipo: VARCHAR
+        valores:
+        - CAND_A
+        - CAND_B
+        - ESQ
+        - CENTRO
+        - DIR
+        - BRANCO
+        - NULO
+        - ABST
+      destino:
+        tipo: VARCHAR
+        valores:
+        - CAND_A
+        - CAND_B
+        - BRANCO
+        - NULO
+        - ABST
+      pct_estimado:
+        tipo: DOUBLE
+        descricao: Media posterior (fracao de 0 a 1)
+      ic_inferior:
+        tipo: DOUBLE
+        descricao: Percentil 2
+        5 da posterior: null
+      ic_superior:
+        tipo: DOUBLE
+        descricao: Percentil 97
+        5 da posterior: null
+      votos_estimados:
+        tipo: DOUBLE
+      eleitores_origem:
+        tipo: DOUBLE
+      metodo:
+        tipo: VARCHAR
+      semente:
+        tipo: BIGINT
+      rhat_max:
+        tipo: DOUBLE
+      ess_min:
+        tipo: DOUBLE
+      status_validacao:
+        tipo: VARCHAR
+        valores:
+        - aprovado
+        - revisao_manual
+      executado_em:
+        tipo: TIMESTAMP
+  dim_candidato:
+    descricao: Candidatos por eleicao. categoria_2t = CAND_A ou CAND_B para os finalistas.
+    granularidade: candidato x eleicao
+    colunas:
+      sk_candidato:
+        tipo: VARCHAR
+      sk_eleicao:
+        tipo: VARCHAR
+      sq_candidato:
+        tipo: BIGINT
+      nr_candidato:
+        tipo: INTEGER
+      nome_candidato:
+        tipo: VARCHAR
+      nome_urna:
+        tipo: VARCHAR
+      sk_partido:
+        tipo: VARCHAR
+      sigla_partido:
+        tipo: VARCHAR
+      sigla_atual:
+        tipo: VARCHAR
+      coligacao:
+        tipo: VARCHAR
+      composicao_coligacao:
+        tipo: VARCHAR
+      situacao_candidatura:
+        tipo: VARCHAR
+      score_ideologico:
+        tipo: DOUBLE
+      faixa_ideologica:
+        tipo: VARCHAR
+      categoria_2t:
+        tipo: VARCHAR
+      votos_1t:
+        tipo: DOUBLE
+      ano:
+        tipo: BIGINT
+      cargo:
+        tipo: VARCHAR
+  dim_municipio:
+    descricao: Municipios (codigo IBGE de 7 digitos), UF, regiao, populacao e porte.
+    granularidade: municipio
+    colunas:
+      cod_municipio_ibge:
+        tipo: INTEGER
+      nome_municipio:
+        tipo: VARCHAR
+      uf:
+        tipo: VARCHAR
+      nome_uf:
+        tipo: VARCHAR
+      regiao:
+        tipo: VARCHAR
+      cod_municipio_tse:
+        tipo: INTEGER
+      area_km2:
+        tipo: DOUBLE
+      capital:
+        tipo: BOOLEAN
+      populacao:
+        tipo: BIGINT
+      ano_populacao:
+        tipo: INTEGER
+      porte:
+        tipo: VARCHAR
+  dim_partido:
+    descricao: Partidos com nota ideologica de 0 (esquerda) a 10 (direita), Bolognesi, Ribeiro e Codato
+      (2023).
+    granularidade: sigla
+    colunas:
+      sk_partido:
+        tipo: VARCHAR
+      numero:
+        tipo: INTEGER
+      sigla:
+        tipo: VARCHAR
+      sigla_atual:
+        tipo: VARCHAR
+      score_ideologico:
+        tipo: DOUBLE
+      faixa_ideologica:
+        tipo: VARCHAR
+      fonte:
+        tipo: VARCHAR
+      ano_classificacao:
+        tipo: INTEGER
+      status_conferencia:
+        tipo: VARCHAR
+      valido_de:
+        tipo: DATE
+      valido_ate:
+        tipo: DATE
+  dim_eleicao:
+    descricao: Eleicoes do catalogo (ano, cargo), datas dos turnos e granularidade disponivel.
+    granularidade: eleicao
+    colunas:
+      sk_eleicao:
+        tipo: VARCHAR
+      cd_cargo:
+        tipo: INTEGER
+      abrangencia:
+        tipo: VARCHAR
+      tem_2t:
+        tipo: BOOLEAN
+      granularidade_disponivel:
+        tipo: VARCHAR
+        descricao: Nivel minimo de dado disponivel no TSE para a eleicao.
+      data_1t:
+        tipo: DATE
+      data_2t:
+        tipo: DATE
+      carregada:
+        tipo: BOOLEAN
+      ano:
+        tipo: INTEGER
+      cargo:
+        tipo: VARCHAR
+  fct_macro_mes:
+    descricao: Indicadores macroeconomicos mensais do Brasil (BCB).
+    granularidade: mes
+    colunas:
+      ano_mes:
+        tipo: DATE
+      pib_mensal_corrente:
+        tipo: DOUBLE
+      desocupacao:
+        tipo: DOUBLE
+      divida_liquida_pct_pib:
+        tipo: DOUBLE
+      divida_bruta_pct_pib:
+        tipo: DOUBLE
+      selic:
+        tipo: DOUBLE
+      ipca:
+        tipo: DOUBLE
+      cambio:
+        tipo: DOUBLE

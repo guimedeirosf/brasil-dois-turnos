@@ -1,0 +1,267 @@
+# Pares pergunta -> SQL. Todos passam no validador do Worker e executam no DuckDB contra a Gold
+# de teste (scripts/validar_exemplos.py e chat-worker/test/examples.test.ts).
+exemplos:
+  - pergunta: Qual foi a abstencao no 2o turno de 2026 no Brasil?
+    sql: |
+      select abstencao, pct_abstencao
+      from srv_resumo_eleicao
+      where ano = 2026 and cargo = 'presidente' and turno = 2 and abrangencia = 'BR'
+      limit 1
+
+  - pergunta: Quanto cada finalista teve de votos validos no 2o turno de 2026?
+    sql: |
+      select nome_cand_a, pct_validos_cand_a, nome_cand_b, pct_validos_cand_b
+      from srv_resumo_eleicao
+      where ano = 2026 and cargo = 'presidente' and turno = 2 and abrangencia = 'BR'
+      limit 1
+
+  - pergunta: Em quais estados a abstencao mais cresceu do 1o para o 2o turno em 2026?
+    sql: |
+      select t2.abrangencia as uf, t2.pct_abstencao - t1.pct_abstencao as variacao
+      from srv_resumo_eleicao as t1
+      join srv_resumo_eleicao as t2
+        on t1.ano = t2.ano and t1.cargo = t2.cargo and t1.abrangencia = t2.abrangencia
+      where t1.ano = 2026 and t1.cargo = 'presidente' and t1.turno = 1 and t2.turno = 2
+        and t1.abrangencia <> 'BR'
+      order by variacao desc
+      limit 10
+
+  - pergunta: Para onde foram os eleitores de esquerda que nao votaram nos finalistas em 2026?
+    sql: |
+      select destino, pct_estimado, ic_inferior, ic_superior
+      from fct_transicao_estimada
+      where ano = 2026 and cargo = 'presidente' and abrangencia = 'BR' and origem = 'ESQ'
+      order by pct_estimado desc
+      limit 5
+
+  - pergunta: Quantos eleitores que se abstiveram no 1o turno votaram no 2o em 2026?
+    sql: |
+      select destino, votos_estimados, ic_inferior, ic_superior
+      from fct_transicao_estimada
+      where ano = 2026 and cargo = 'presidente' and abrangencia = 'BR' and origem = 'ABST'
+        and destino <> 'ABST'
+      order by votos_estimados desc
+      limit 5
+
+  - pergunta: Qual a fidelidade estimada dos eleitores de cada finalista entre os turnos em 2026?
+    sql: |
+      select origem, pct_estimado, ic_inferior, ic_superior
+      from fct_transicao_estimada
+      where ano = 2026 and cargo = 'presidente' and abrangencia = 'BR'
+        and origem in ('CAND_A', 'CAND_B') and origem = destino
+      limit 2
+
+  - pergunta: Como os eleitores de centro se dividiram no 2o turno em Goias em 2026?
+    sql: |
+      select destino, pct_estimado, ic_inferior, ic_superior
+      from fct_transicao_estimada
+      where ano = 2026 and cargo = 'presidente' and abrangencia = 'GO' and origem = 'CENTRO'
+      order by pct_estimado desc
+      limit 5
+
+  - pergunta: Em quais estados o voto de direita mais migrou para CAND_A em 2026?
+    sql: |
+      select abrangencia as uf, pct_estimado, ic_inferior, ic_superior
+      from fct_transicao_estimada
+      where ano = 2026 and cargo = 'presidente' and origem = 'DIR' and destino = 'CAND_A'
+        and abrangencia <> 'BR'
+      order by pct_estimado desc
+      limit 10
+
+  - pergunta: Quantos municipios tiveram virada entre os turnos em 2026?
+    sql: |
+      select count(*) as municipios_com_virada
+      from srv_municipio_turnos
+      where ano = 2026 and cargo = 'presidente' and virada
+      limit 1
+
+  - pergunta: Quais municipios tiveram virada em 2026 e quem venceu em cada turno?
+    sql: |
+      select nome_municipio, uf, vencedor_1t, vencedor_2t, swing_cand_a
+      from srv_municipio_turnos
+      where ano = 2026 and cargo = 'presidente' and virada
+      order by abs(swing_cand_a) desc
+      limit 50
+
+  - pergunta: Quais os 10 municipios com maior swing para o CAND_A em 2026?
+    sql: |
+      select nome_municipio, uf, swing_cand_a
+      from srv_municipio_turnos
+      where ano = 2026 and cargo = 'presidente'
+      order by swing_cand_a desc
+      limit 10
+
+  - pergunta: Quantos municipios cada finalista venceu no 2o turno de 2026, por regiao?
+    sql: |
+      select regiao, vencedor_2t, count(*) as municipios
+      from srv_municipio_turnos
+      where ano = 2026 and cargo = 'presidente'
+      group by regiao, vencedor_2t
+      order by regiao, vencedor_2t
+      limit 20
+
+  - pergunta: Qual o desempenho de CAND_A no Nordeste no 2o turno de 2026?
+    sql: |
+      select sum(votos_cand_a) as votos_cand_a, sum(votos_validos) as votos_validos,
+        sum(votos_cand_a) / sum(votos_validos) as pct_validos_cand_a
+      from srv_resumo_eleicao
+      where ano = 2026 and cargo = 'presidente' and turno = 2
+        and abrangencia in ('AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE')
+      limit 1
+
+  - pergunta: Como votaram os brasileiros no exterior no 2o turno de 2026?
+    sql: |
+      select nome_cand_a, pct_validos_cand_a, nome_cand_b, pct_validos_cand_b, pct_abstencao
+      from srv_resumo_eleicao
+      where ano = 2026 and cargo = 'presidente' and turno = 2 and abrangencia = 'ZZ'
+      limit 1
+
+  - pergunta: Quais foram os candidatos a presidente em 2026 e seus partidos?
+    sql: |
+      select nome_urna, sigla_partido, faixa_ideologica, votos_1t
+      from dim_candidato
+      where ano = 2026 and cargo = 'presidente'
+      order by votos_1t desc nulls last
+      limit 20
+
+  - pergunta: Quem foram os finalistas de 2026?
+    sql: |
+      select categoria_2t, nome_urna, sigla_partido
+      from dim_candidato
+      where ano = 2026 and cargo = 'presidente' and categoria_2t is not null
+      order by categoria_2t
+      limit 2
+
+  - pergunta: Quantos votos Lula teve no 2o turno de 2026 em cada estado?
+    sql: |
+      select v.uf, sum(v.votos) as votos
+      from fct_votacao_municipio as v
+      join dim_candidato as c on v.sk_candidato = c.sk_candidato
+      where v.ano = 2026 and v.cargo = 'presidente' and v.turno = 2 and c.nome_urna = 'LULA'
+      group by v.uf
+      order by votos desc
+      limit 30
+
+  - pergunta: Em quais municipios Flavio Bolsonaro teve mais de 80% dos validos no 2o turno de 2026?
+    sql: |
+      select m.nome_municipio, m.uf, v.pct_validos
+      from fct_votacao_municipio as v
+      join dim_candidato as c on v.sk_candidato = c.sk_candidato
+      join dim_municipio as m on v.cod_municipio_ibge = m.cod_municipio_ibge
+      where v.ano = 2026 and v.cargo = 'presidente' and v.turno = 2
+        and c.nome_urna = 'FLAVIO BOLSONARO' and v.pct_validos > 0.8
+      order by v.pct_validos desc
+      limit 100
+
+  - pergunta: Quantos votos brancos e nulos houve no 1o turno de 2026?
+    sql: |
+      select brancos, nulos
+      from srv_resumo_eleicao
+      where ano = 2026 and cargo = 'presidente' and turno = 1 and abrangencia = 'BR'
+      limit 1
+
+  - pergunta: Quanto somaram os candidatos de centro no 1o turno de 2026 por estado?
+    sql: |
+      select abrangencia as uf, votos_centro, votos_centro / votos_validos as pct_validos
+      from srv_resumo_eleicao
+      where ano = 2026 and cargo = 'presidente' and turno = 1 and abrangencia <> 'BR'
+      order by pct_validos desc
+      limit 30
+
+  - pergunta: Qual a nota ideologica de cada partido usada na classificacao?
+    sql: |
+      select sigla, score_ideologico, faixa_ideologica, fonte
+      from dim_partido
+      where score_ideologico is not null
+      order by score_ideologico
+      limit 100
+
+  - pergunta: Quais as capitais onde a abstencao foi maior no 2o turno de 2026?
+    sql: |
+      select m.nome_municipio, m.uf, s.pct_abstencao_2t
+      from srv_municipio_turnos as s
+      join dim_municipio as m on s.cod_municipio_ibge = m.cod_municipio_ibge
+      where s.ano = 2026 and s.cargo = 'presidente' and m.capital
+      order by s.pct_abstencao_2t desc
+      limit 27
+
+  - pergunta: A abstencao no 2o turno foi maior em municipios pequenos ou grandes em 2026?
+    sql: |
+      select m.porte, avg(s.pct_abstencao_2t) as abstencao_media, count(*) as municipios
+      from srv_municipio_turnos as s
+      join dim_municipio as m on s.cod_municipio_ibge = m.cod_municipio_ibge
+      where s.ano = 2026 and s.cargo = 'presidente'
+      group by m.porte
+      order by abstencao_media desc
+      limit 10
+
+  - pergunta: Qual o comparecimento no 1o e no 2o turno de 2026?
+    sql: |
+      select turno, comparecimento, aptos, comparecimento / aptos as pct_comparecimento
+      from srv_resumo_eleicao
+      where ano = 2026 and cargo = 'presidente' and abrangencia = 'BR'
+      order by turno
+      limit 2
+
+  - pergunta: Quais eleicoes presidenciais tiveram 2o turno?
+    sql: |
+      select ano, data_1t, data_2t, carregada
+      from dim_eleicao
+      where cargo = 'presidente' and tem_2t
+      order by ano
+      limit 20
+
+  - pergunta: Qual era a Selic e o IPCA no mes do 2o turno de 2026?
+    sql: |
+      select ano_mes, selic, ipca
+      from fct_macro_mes
+      where ano_mes = date '2026-10-01'
+      limit 1
+
+  - pergunta: Como evoluiu a divida liquida do setor publico nos 12 meses antes da eleicao de 2026?
+    sql: |
+      select ano_mes, divida_liquida_pct_pib
+      from fct_macro_mes
+      where ano_mes between date '2025-10-01' and date '2026-10-01'
+      order by ano_mes
+      limit 13
+
+  - pergunta: Qual a desocupacao media em 2026?
+    sql: |
+      select avg(desocupacao) as desocupacao_media
+      from fct_macro_mes
+      where year(ano_mes) = 2026
+      limit 1
+
+  - pergunta: Qual estado deu a maior vantagem ao CAND_B no 2o turno de 2026?
+    sql: |
+      select abrangencia as uf, nome_cand_b, pct_validos_cand_b - pct_validos_cand_a as vantagem
+      from srv_resumo_eleicao
+      where ano = 2026 and cargo = 'presidente' and turno = 2 and abrangencia not in ('BR', 'ZZ')
+      order by vantagem desc
+      limit 1
+
+  - pergunta: Quais transicoes estimadas tem intervalo de credibilidade mais largo no Brasil em 2026?
+    sql: |
+      select origem, destino, pct_estimado, ic_superior - ic_inferior as largura
+      from fct_transicao_estimada
+      where ano = 2026 and cargo = 'presidente' and abrangencia = 'BR'
+      order by largura desc
+      limit 10
+
+  - pergunta: Para onde foram os votos brancos do 1o turno em Sao Paulo em 2026?
+    sql: |
+      select destino, pct_estimado, ic_inferior, ic_superior
+      from fct_transicao_estimada
+      where ano = 2026 and cargo = 'presidente' and abrangencia = 'SP' and origem = 'BRANCO'
+      order by pct_estimado desc
+      limit 5
+
+  - pergunta: Quantos municipios ha em cada porte no Sul?
+    sql: |
+      select porte, count(*) as municipios
+      from dim_municipio
+      where uf in ('PR', 'RS', 'SC')
+      group by porte
+      order by municipios desc
+      limit 10
