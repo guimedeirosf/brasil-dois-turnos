@@ -1,0 +1,98 @@
+version: 2
+
+models:
+  - name: dim_eleicao
+    description: Uma linha por eleicao do catalogo (ano x cargo x abrangencia).
+    columns:
+      - name: sk_eleicao
+        data_tests: [unique, not_null]
+      - name: granularidade_disponivel
+        description: Nivel minimo de dado disponivel no TSE para a eleicao.
+
+  - name: dim_municipio
+    description: Municipios do IBGE com codigo TSE, UF, regiao, populacao e porte.
+    columns:
+      - name: cod_municipio_ibge
+        data_tests: [unique, not_null]
+      - name: cod_municipio_tse
+        data_tests: [unique]
+
+  - name: dim_partido
+    description: >-
+      Partidos com nota ideologica (Bolognesi, Ribeiro e Codato, 2023; escala 0 a 10) e
+      vigencia da sigla (SCD2).
+    columns:
+      - name: sk_partido
+        data_tests: [unique, not_null]
+      - name: sigla
+        data_tests: [unique, not_null]
+      - name: faixa_ideologica
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [ESQ, CENTRO, DIR]
+      - name: score_ideologico
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 0, max_value: 10}
+
+  - name: dim_candidato
+    description: Candidato x eleicao. categoria_2t indica CAND_A ou CAND_B para os finalistas.
+    columns:
+      - name: sk_candidato
+        data_tests: [unique, not_null]
+      - name: sk_eleicao
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_eleicao'), field: sk_eleicao}
+
+  - name: fct_votacao_secao
+    description: Secao x turno x votavel.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [sk_eleicao, turno, uf, cod_municipio_tse, zona, secao, nr_votavel]
+    columns:
+      - name: aptos
+        data_tests: [not_null]
+      - name: categoria
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [CAND_A, CAND_B, ESQ, CENTRO, DIR, BRANCO, NULO]
+
+  - name: fct_secao_resumo
+    description: Secao x turno com aptos, comparecimento, abstencao, brancos, nulos e votos por categoria.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [sk_eleicao, turno, uf, cod_municipio_tse, zona, secao]
+
+  - name: fct_votacao_municipio
+    description: Municipio x turno x votavel, com percentual de votos validos.
+    columns:
+      - name: pct_validos
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments: {min_value: 0, max_value: 1}
+
+  - name: fct_macro_mes
+    description: Indicadores macroeconomicos mensais (Brasil).
+    columns:
+      - name: ano_mes
+        data_tests: [unique, not_null]
+
+  - name: srv_resumo_eleicao
+    description: Numeros-chave por eleicao, turno e abrangencia (BR e UFs). Lido pelo site.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [sk_eleicao, turno, abrangencia]
+
+  - name: srv_municipio_turnos
+    description: Municipio com vencedor por turno, virada, swing e abstencao. Alimenta o mapa.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [sk_eleicao, cod_municipio_tse]

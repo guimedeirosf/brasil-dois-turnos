@@ -1,0 +1,4 @@
+faixa,limite_inferior,limite_superior,inclui_inferior,inclui_superior
+ESQ,0,4,true,false
+CENTRO,4,6,true,true
+DIR,6,10,false,true

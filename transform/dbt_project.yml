@@ -1,0 +1,60 @@
+name: brasil_dois_turnos
+version: "0.1.0"
+config-version: 2
+profile: brasil_dois_turnos
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+target-path: target
+clean-targets: [target, dbt_packages]
+
+vars:
+  # Tolerancia da regra "votos = comparecimento" e afins (zero: os dados do TSE fecham)
+  tolerancia_votos: 0
+
+seeds:
+  brasil_dois_turnos:
+    +schema: referencia
+    partidos_ideologia:
+      +column_types:
+        numero: integer
+        score: double
+        ano_classificacao: integer
+    partidos_sucessao:
+      +column_types:
+        data_evento: date
+    limites_ideologicos:
+      +column_types:
+        limite_inferior: double
+        limite_superior: double
+        inclui_inferior: boolean
+        inclui_superior: boolean
+    eleicoes_catalogo:
+      +column_types:
+        ano: integer
+        cd_cargo: integer
+        tem_2t: boolean
+    resultados_oficiais:
+      +column_types:
+        ano: integer
+        turno: integer
+        nr_votavel: integer
+        votos: bigint
+    uf_regiao:
+      +column_types:
+        cod_uf_ibge: integer
+
+models:
+  brasil_dois_turnos:
+    staging:
+      +schema: silver
+      +materialized: view
+    intermediate:
+      +schema: silver
+      +materialized: table
+    marts:
+      +schema: gold
+      +materialized: table

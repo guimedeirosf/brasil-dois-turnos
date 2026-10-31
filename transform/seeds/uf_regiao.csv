@@ -1,0 +1,29 @@
+uf,nome_uf,regiao,cod_uf_ibge
+AC,Acre,Norte,12
+AL,Alagoas,Nordeste,27
+AM,Amazonas,Norte,13
+AP,Amapa,Norte,16
+BA,Bahia,Nordeste,29
+CE,Ceara,Nordeste,23
+DF,Distrito Federal,Centro-Oeste,53
+ES,Espirito Santo,Sudeste,32
+GO,Goias,Centro-Oeste,52
+MA,Maranhao,Nordeste,21
+MG,Minas Gerais,Sudeste,31
+MS,Mato Grosso do Sul,Centro-Oeste,50
+MT,Mato Grosso,Centro-Oeste,51
+PA,Para,Norte,15
+PB,Paraiba,Nordeste,25
+PE,Pernambuco,Nordeste,26
+PI,Piaui,Nordeste,22
+PR,Parana,Sul,41
+RJ,Rio de Janeiro,Sudeste,33
+RN,Rio Grande do Norte,Nordeste,24
+RO,Rondonia,Norte,11
+RR,Roraima,Norte,14
+RS,Rio Grande do Sul,Sul,43
+SC,Santa Catarina,Sul,42
+SE,Sergipe,Nordeste,28
+SP,Sao Paulo,Sudeste,35
+TO,Tocantins,Norte,17
+ZZ,Exterior,Exterior,

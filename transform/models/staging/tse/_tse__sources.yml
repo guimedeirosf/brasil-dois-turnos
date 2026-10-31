@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: tse
+    description: Bronze do TSE (copia fiel dos CSVs, todas as colunas como texto).
+    meta:
+      external_location: >-
+        read_parquet('{{ env_var("BRONZE_DIR", "../data/bronze") }}/tse/{name}/*/*/*/*.parquet',
+        hive_partitioning = true, union_by_name = true)
+    tables:
+      - name: votacao_secao
+        description: Votos por secao e votavel (95 = branco, 96 = nulo, 97 = anulado).
+      - name: detalhe_votacao_secao
+        description: Aptos, comparecimento, abstencao, brancos e nulos por secao.
+      - name: consulta_cand
+        description: Candidatos por eleicao e turno.

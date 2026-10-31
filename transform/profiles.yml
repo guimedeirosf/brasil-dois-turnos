@@ -1,0 +1,18 @@
+# Sem segredos: tudo vem de variaveis de ambiente.
+brasil_dois_turnos:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('WAREHOUSE_PATH', '../data/warehouse.duckdb') }}"
+      threads: 4
+    ci:
+      type: duckdb
+      path: "{{ env_var('WAREHOUSE_PATH', '../data/ci/warehouse.duckdb') }}"
+      threads: 4
+    prod:
+      type: duckdb
+      path: "{{ env_var('WAREHOUSE_PATH', '../data/warehouse.duckdb') }}"
+      threads: 4
+      settings:
+        memory_limit: "{{ env_var('DUCKDB_MEMORY_LIMIT', '10GB') }}"

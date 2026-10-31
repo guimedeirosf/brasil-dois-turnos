@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: stg_diretorios__municipios_ibge
+    description: Municipios do IBGE com UF.
+    columns:
+      - name: cod_municipio_ibge
+        data_tests: [unique, not_null]
+      - name: uf
+        data_tests: [not_null]
+
+  - name: stg_diretorios__municipios_tse
+    description: De-para de codigo TSE (5 digitos) para codigo IBGE (7 digitos).
+    columns:
+      - name: cod_municipio_tse
+        data_tests: [unique, not_null]
+      - name: cod_municipio_ibge
+        data_tests: [unique, not_null]

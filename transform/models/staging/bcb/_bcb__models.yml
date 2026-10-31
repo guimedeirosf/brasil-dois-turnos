@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: stg_bcb__series
+    description: Series do BCB em formato longo (serie x data).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [serie, data_referencia]
+    columns:
+      - name: data_referencia
+        data_tests: [not_null]

@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: int_votacao_secao
+    description: Votacao por secao sem duplicatas.
+
+  - name: int_detalhe_secao
+    description: Detalhe da apuracao por secao sem duplicatas.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [ano, cd_cargo, turno, uf, cod_municipio_tse, zona, secao]
+
+  - name: int_auditoria_descartes
+    description: Quantas linhas foram descartadas na deduplicacao, por tabela e particao.
+
+  - name: int_partidos
+    description: Sigla historica -> sigla atual.
+    columns:
+      - name: sigla
+        data_tests: [unique, not_null]
+
+  - name: int_candidatos
+    description: Candidatos com partido resolvido e nota ideologica.
+
+  - name: int_finalistas
+    description: Candidatos do 2o turno e sua categoria (CAND_A ou CAND_B).
+    columns:
+      - name: categoria
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [CAND_A, CAND_B]
+
+  - name: int_votos_secao_categorizados
+    description: Votos por secao, turno e categoria de voto.
+    columns:
+      - name: categoria
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [CAND_A, CAND_B, ESQ, CENTRO, DIR, BRANCO, NULO, ABST]

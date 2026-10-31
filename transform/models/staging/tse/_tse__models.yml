@@ -1,0 +1,81 @@
+version: 2
+
+models:
+  - name: stg_tse__votacao_secao
+    description: Votacao por secao, tipada e com textos normalizados. Uma linha por secao x turno x votavel.
+    config:
+      contract: {enforced: true}
+    columns:
+      - {name: ano, data_type: integer, data_tests: [not_null]}
+      - {name: cargo, data_type: varchar, data_tests: [not_null]}
+      - name: turno
+        data_type: integer
+        data_tests: [not_null, {accepted_values: {arguments: {values: [1, 2]}}}]
+      - {name: cd_eleicao, data_type: integer}
+      - {name: data_eleicao, data_type: date, data_tests: [not_null]}
+      - name: uf
+        data_type: varchar
+        data_tests: [not_null, {relationships: {arguments: {to: ref('uf_regiao'), field: uf}}}]
+      - {name: sg_ue, data_type: varchar}
+      - {name: cod_municipio_tse, data_type: integer, data_tests: [not_null]}
+      - {name: nome_municipio, data_type: varchar}
+      - {name: zona, data_type: integer, data_tests: [not_null]}
+      - {name: secao, data_type: integer, data_tests: [not_null]}
+      - {name: cd_cargo, data_type: integer}
+      - {name: nr_votavel, data_type: integer, data_tests: [not_null]}
+      - {name: nome_votavel, data_type: varchar}
+      - {name: sq_candidato, data_type: bigint}
+      - name: votos
+        data_type: integer
+        data_tests: [not_null, {dbt_utils.accepted_range: {arguments: {min_value: 0}}}]
+      - {name: carregado_em, data_type: timestamp}
+
+  - name: stg_tse__detalhe_votacao_secao
+    description: Totais de apuracao por secao (aptos, comparecimento, abstencao, brancos, nulos).
+    config:
+      contract: {enforced: true}
+    columns:
+      - {name: ano, data_type: integer, data_tests: [not_null]}
+      - {name: cargo, data_type: varchar}
+      - {name: turno, data_type: integer, data_tests: [{accepted_values: {arguments: {values: [1, 2]}}}]}
+      - {name: data_eleicao, data_type: date}
+      - {name: uf, data_type: varchar, data_tests: [not_null]}
+      - {name: sg_ue, data_type: varchar}
+      - {name: cod_municipio_tse, data_type: integer, data_tests: [not_null]}
+      - {name: zona, data_type: integer}
+      - {name: secao, data_type: integer}
+      - {name: cd_cargo, data_type: integer}
+      - name: aptos
+        data_type: integer
+        data_tests: [not_null, {dbt_utils.accepted_range: {arguments: {min_value: 0}}}]
+      - {name: comparecimento, data_type: integer, data_tests: [not_null]}
+      - {name: abstencoes, data_type: integer, data_tests: [not_null]}
+      - {name: votos_nominais, data_type: integer}
+      - {name: votos_brancos, data_type: integer}
+      - {name: votos_nulos, data_type: integer}
+      - {name: votos_legenda, data_type: integer}
+      - {name: votos_anulados_apu_sep, data_type: integer}
+      - {name: secao_instalada, data_type: boolean}
+      - {name: secao_anulada, data_type: boolean}
+      - {name: origem_voto, data_type: varchar}
+
+  - name: stg_tse__candidatos
+    description: Candidatos por eleicao e turno.
+    config:
+      contract: {enforced: true}
+    columns:
+      - {name: ano, data_type: integer}
+      - {name: cargo, data_type: varchar}
+      - {name: turno, data_type: integer}
+      - {name: sg_ue, data_type: varchar}
+      - {name: cd_cargo, data_type: integer}
+      - {name: sq_candidato, data_type: bigint, data_tests: [not_null]}
+      - {name: nr_candidato, data_type: integer}
+      - {name: nome_candidato, data_type: varchar}
+      - {name: nome_urna, data_type: varchar}
+      - {name: nr_partido, data_type: integer}
+      - {name: sigla_partido, data_type: varchar, data_tests: [not_null]}
+      - {name: coligacao, data_type: varchar}
+      - {name: composicao_coligacao, data_type: varchar}
+      - {name: situacao_candidatura, data_type: varchar}
+      - {name: situacao_turno, data_type: varchar}

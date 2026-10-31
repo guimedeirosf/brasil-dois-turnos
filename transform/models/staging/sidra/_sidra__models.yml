@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: stg_sidra__populacao
+    description: Populacao estimada por municipio e ano (SIDRA 6579).
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [cod_municipio_ibge, ano]
